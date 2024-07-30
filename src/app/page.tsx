@@ -47,7 +47,7 @@ class Tetris {
 
   constructor() {
     // Inicializa el tablero con ceros (celdas vacías)
-    this.board = Array(BOARD_Y).fill("").map(() => Array(BOARD_X).fill(0));
+    this.board = Array.from({ length: BOARD_Y }, () => Array(BOARD_X).fill(0));
     // Genera la primera pieza
     this.generatePiece();
     // Bandera para determinar si el juego ha terminado
@@ -91,6 +91,7 @@ class Tetris {
 
   // Verifica si la pieza puede ser movida a una nueva posición
   check({ dx = 0, dy = 0, shape = this.piece!.shape }: MoveOptions = {}): boolean {
+    shape = shape || this.piece!.shape;
     for (let y = 0; y < shape.length; y++) {
       for (let x = 0; x < shape[0].length; x++) {
         const newY = this.piece!.y + y + dy!;
@@ -125,7 +126,7 @@ class Tetris {
   // Genera una nueva forma rotada
   rotatedShape(): number[][] {
     const { shape } = this.piece!;
-    const rotatedShape = Array(shape[0].length).fill("").map(() => Array(shape.length).fill(0));
+    const rotatedShape = Array.from({ length: shape[0].length }, () => Array(shape.length).fill(0));
     for (let y = 0; y < shape.length; y++) {
       for (let x = 0; x < shape[0].length; x++) {
         if (shape[y][x]) {
