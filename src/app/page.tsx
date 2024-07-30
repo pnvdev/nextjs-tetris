@@ -1,113 +1,246 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState } from "react";
+
+// Dimensiones del tablero
+const BOARD_X = 10;
+const BOARD_Y = 20;
+
+// Definición de las formas posibles
+const SHAPES: number[][][] = [
+  [[1, 1, 1, 1]], // Forma de línea
+  [
+    [1, 1],
+    [1, 1]
+  ], // Forma de cuadrado
+  [
+    [1, 1, 1],
+    [0, 1, 0]
+  ], // Forma de T
+];
+
+// Tipos para la pieza y las opciones de movimiento
+interface Piece {
+  x: number;
+  y: number;
+  shape: number[][];
+}
+
+interface MoveOptions {
+  dx?: number;
+  dy?: number;
+  rotate?: boolean;
+}
+
+interface PlaceOptions {
+  remove?: boolean;
+  stick?: boolean;
+}
+
+// Clase Tetris que maneja la lógica del juego
+class Tetris {
+  board: number[][];
+  piece: Piece | undefined;
+  gameOver: boolean;
+  score: number;
+
+  constructor() {
+    // Inicializa el tablero con ceros (celdas vacías)
+    this.board = Array(BOARD_Y).fill("").map(() => Array(BOARD_X).fill(0));
+    // Genera la primera pieza
+    this.generatePiece();
+    // Bandera para determinar si el juego ha terminado
+    this.gameOver = false;
+    // Inicializa la puntuación
+    this.score = 0;
+  }
+
+  // Genera una nueva pieza aleatoria
+  generatePiece() {
+    // Selecciona una forma aleatoria de la lista de formas
+    const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    // Inicializa la pieza con su posición y forma
+    this.piece = {
+      x: Math.floor(BOARD_X / 2) - Math.floor(shape[0].length / 2),
+      y: 0,
+      shape
+    };
+    // Verifica si la pieza puede ser colocada en el tablero
+    if (!this.check()) {
+      this.gameOver = true; // Termina el juego si no se puede colocar
+    } else {
+      this.place(); // Coloca la pieza en el tablero
+    }
+  }
+
+  // Coloca la pieza en el tablero
+  place({ remove = false, stick = false }: PlaceOptions = {}) {
+    const { shape } = this.piece!;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[0].length; x++) {
+        if (shape[y][x]) {
+          const newY = this.piece!.y + y;
+          const newX = this.piece!.x + x;
+          // Actualiza el tablero dependiendo de si la pieza se está colocando o removiendo
+          this.board[newY][newX] = remove ? 0 : stick ? 2 : shape[y][x];
+        }
+      }
+    }
+  }
+
+  // Verifica si la pieza puede ser movida a una nueva posición
+  check({ dx = 0, dy = 0, shape = this.piece!.shape }: MoveOptions = {}): boolean {
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[0].length; x++) {
+        const newY = this.piece!.y + y + dy!;
+        const newX = this.piece!.x + x + dx!;
+
+        if (shape[y][x]) {
+          // Verifica los límites del tablero
+          if (newX < 0 || newX >= BOARD_X || newY >= BOARD_Y) {
+            return false;
+          }
+          // Verifica colisiones con otras piezas fijas
+          if (newY >= 0 && this.board[newY][newX] === 2) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  // Limpia las líneas completas del tablero
+  clearLines() {
+    this.board.forEach((row, i) => {
+      if (row.every(cell => cell === 2)) {
+        this.board.splice(i, 1); // Elimina la fila completa
+        this.board.unshift(Array(BOARD_X).fill(0)); // Añade una nueva fila vacía en la parte superior
+        this.score += 100; // Incrementa la puntuación por cada línea eliminada
+      }
+    });
+  }
+
+  // Genera una nueva forma rotada
+  rotatedShape(): number[][] {
+    const { shape } = this.piece!;
+    const rotatedShape = Array(shape[0].length).fill("").map(() => Array(shape.length).fill(0));
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[0].length; x++) {
+        if (shape[y][x]) {
+          rotatedShape[x][shape.length - y - 1] = shape[y][x];
+        }
+      }
+    }
+    return rotatedShape;
+  }
+
+  // Mueve la pieza en el tablero
+  move({ dx = 0, dy = 0, rotate = false }: MoveOptions = {}) {
+    const shape = rotate ? this.rotatedShape() : this.piece!.shape;
+    const valid = this.check({ dx, dy, shape });
+
+    if (!valid && dy) {
+      this.place({ stick: true }); // Fija la pieza en el tablero
+      this.clearLines(); // Limpia las líneas completas
+      this.generatePiece(); // Genera una nueva pieza
+      return;
+    }
+
+    if (!valid) {
+      return;
+    }
+
+    this.place({ remove: true }); // Remueve la pieza de su posición actual
+    this.piece!.x += dx!; // Actualiza la posición horizontal
+    this.piece!.y += dy!; // Actualiza la posición vertical
+    this.piece!.shape = shape; // Actualiza la forma de la pieza
+    this.place(); // Coloca la pieza en la nueva posición
+  }
+}
+
+// Inicializa una instancia del juego Tetris
+let tetris = new Tetris();
+
+// Estilos para las celdas del tablero usando Tailwind CSS
+const cellStyles = (cell: number) => {
+  let bgColor = "bg-black"; // Por defecto, el color de fondo es negro
+  if (cell === 1) {
+    bgColor = "bg-gray-400"; // Celdas en movimiento (color plata)
+  } else if (cell === 2) {
+    bgColor = "bg-red-500"; // Celdas fijas (color rojo)
+  }
+  return `w-10 h-10 border border-white ${bgColor}`; // Clase de Tailwind CSS para las celdas
+};
+
+// Componente principal del juego Tetris
+export default function TetrisGame() {
+  const [board, setBoard] = useState<number[][]>(tetris.board); // Estado del tablero
+  const [gameOver, setGameOver] = useState<boolean>(false); // Estado del juego
+  const [score, setScore] = useState<number>(0); // Estado de la puntuación
+
+  useEffect(() => {
+    const keyDownHandler = (e: KeyboardEvent) => {
+      // Maneja las pulsaciones de teclas
+      if (e.key === 'ArrowDown') {
+        tetris.move({ dy: 1 });
+      } else if (e.key === 'ArrowLeft') {
+        tetris.move({ dx: -1 });
+      } else if (e.key === 'ArrowRight') {
+        tetris.move({ dx: 1 });
+      } else if (e.key === 'ArrowUp') {
+        tetris.move({ rotate: true });
+      }
+      setBoard([...tetris.board]); // Actualiza el tablero
+      setScore(tetris.score); // Actualiza la puntuación
+      if (tetris.gameOver) setGameOver(true); // Verifica si el juego ha terminado
+    };
+
+    document.addEventListener('keydown', keyDownHandler); // Añade el evento de teclado
+    return () => document.removeEventListener('keydown', keyDownHandler); // Limpia el evento de teclado
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tetris.move({ dy: 1 }); // Mueve la pieza hacia abajo cada 500ms
+      setBoard([...tetris.board]); // Actualiza el tablero
+      setScore(tetris.score); // Actualiza la puntuación
+      if (tetris.gameOver) setGameOver(true); // Verifica si el juego ha terminado
+    }, 500);
+
+    return () => clearInterval(interval); // Limpia el intervalo
+  }, []);
+
+  const restartGame = () => {
+    tetris = new Tetris();
+    setBoard(tetris.board);
+    setGameOver(false);
+    setScore(0);
+  };
+
+  if (gameOver) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+        <h1 className="text-4xl font-bold mb-4">Game Over</h1>
+        <h2 className="text-2xl mb-4">Final Score: {score}</h2> {/* Muestra la puntuación final */}
+        <button onClick={restartGame} className="px-4 py-2 bg-blue-500 text-white rounded">
+          Play Again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+      <h1 className="text-4xl font-bold mb-4">Tetris</h1>
+      <h2 className="text-2xl mb-4">Score: {score}</h2> {/* Muestra la puntuación actual */}
+      <div>
+        {board.map((row, i) => (
+          <div key={i} className="flex">
+            {row.map((cell, j) => <div key={j} className={cellStyles(cell)}></div>)}
+          </div>
+        ))}
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
