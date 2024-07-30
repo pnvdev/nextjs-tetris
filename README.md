@@ -1,6 +1,3 @@
-Aquí tienes un archivo `README.md` para tu proyecto Tetris en React y TypeScript:
-
-```markdown
 # Tetris Game
 
 A classic Tetris game implemented in React and TypeScript. This project showcases a basic implementation of the Tetris game mechanics, including piece movement, rotation, line clearing, and scoring. 
