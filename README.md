@@ -15,7 +15,7 @@ A classic Tetris game implemented in React and TypeScript. This project showcase
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/tetris-game.git
+   git clone https://github.com/pnvdev/nextjs-tetris.git
    cd tetris-game
    ```
 
@@ -24,7 +24,7 @@ A classic Tetris game implemented in React and TypeScript. This project showcase
    Ensure you have [Node.js](https://nodejs.org/) installed. Then, install the project dependencies:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Run the Development Server**
@@ -32,7 +32,7 @@ A classic Tetris game implemented in React and TypeScript. This project showcase
    Start the development server to run the game:
 
    ```bash
-   npm start
+   pnpm dev
    ```
 
    Open `http://localhost:3000` in your browser to play the game.
@@ -67,4 +67,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
-For any questions or feedback, please reach out to [your-email@example.com](mailto:your-email@example.com).
+For any questions or feedback, please reach out to [your-email@example.com](mailto:paulvallejos@gmail.com).
