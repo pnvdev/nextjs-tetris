@@ -30,6 +30,7 @@ interface MoveOptions {
   dx?: number;
   dy?: number;
   rotate?: boolean;
+  shape?: number[][];
 }
 
 interface PlaceOptions {
