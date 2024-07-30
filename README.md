@@ -68,20 +68,3 @@ This project is licensed under the [MIT License](LICENSE).
 ## Contact
 
 For any questions or feedback, please reach out to [your-email@example.com](mailto:your-email@example.com).
-
----
-
-Feel free to customize this `README.md` file according to your project's specifics and preferences. If you have any additional features or changes, you can include them in the appropriate sections.
-```
-
-### Summary of Sections
-
-1. **Features**: Lists the key features of the Tetris game.
-2. **Installation**: Instructions to set up the project locally.
-3. **Usage**: Details on how to interact with the game.
-4. **Development**: Notes on the development process and code styling.
-5. **Contributing**: Guidelines for contributing to the project.
-6. **License**: License information (adjust according to the license used).
-7. **Contact**: Contact information for further inquiries.
-
-You can customize the contact email and any other details to fit your needs.
