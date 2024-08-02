@@ -1,6 +1,11 @@
 'use client'
 
 import { useEffect, useState } from "react";
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = 'https://lqmbautuywnpfzyfbnxg.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Dimensiones del tablero
 const BOARD_X = 10;
@@ -180,6 +185,8 @@ export default function TetrisGame() {
   const [board, setBoard] = useState<number[][]>(tetris.board); // Estado del tablero
   const [gameOver, setGameOver] = useState<boolean>(false); // Estado del juego
   const [score, setScore] = useState<number>(0); // Estado de la puntuación
+  const [playerName, setPlayerName] = useState<string>(''); // Estado de la puntuación
+  const [loading, setLoading] = useState<boolean>(false); // Estado de la puntuación
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
@@ -223,9 +230,62 @@ export default function TetrisGame() {
   if (gameOver) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-        <h1 className="text-4xl font-bold mb-4">Game Over</h1>
-        <h2 className="text-2xl mb-4">Final Score: {score}</h2> {/* Muestra la puntuación final */}
-        <button onClick={restartGame} className="px-4 py-2 bg-blue-500 text-white rounded">
+        <h1 className="text-8xl font-bold mb-4">Game Over</h1>
+        <h2 className="text-4xl mb-32">Final Score: {score}</h2> {/* Muestra la puntuación final */}
+        {score > 1000 && (
+
+          <>
+          <input 
+          className="text-6xl mb-4 px-4 py-10 text-black text-center" 
+          type="text" 
+          value={playerName} 
+          onChange={
+            (e) => {
+              setPlayerName(e.target.value);
+            }
+          } 
+          placeholder="Player Name" />
+        <button className="text-3xl px-20 py-12 my-10 bg-red-500 text-white rounded mb-10 flex"
+          disabled={loading} 
+          onClick={
+            async () => {
+              console.log('Guardar score');
+              
+              if (score < 1000){
+                return;
+              }
+              setLoading(true)
+
+              const { data, error } = await supabase
+                .from('score')
+                .insert({ score: score, name: playerName })
+                .select()
+              console.log(error);
+              console.log(data);
+              setPlayerName('')
+              setLoading(false)
+              restartGame()              
+            }
+          }
+        >
+          {loading ? (
+            <>
+            <svg width="30" height="30" fill="currentColor" className="mr-2 animate-spin" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
+                <path d="M526 1394q0 53-37.5 90.5t-90.5 37.5q-52 0-90-38t-38-90q0-53 37.5-90.5t90.5-37.5 90.5 37.5 37.5 90.5zm498 206q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-704-704q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm1202 498q0 52-38 90t-90 38q-53 0-90.5-37.5t-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-964-996q0 66-47 113t-113 47-113-47-47-113 47-113 113-47 113 47 47 113zm1170 498q0 53-37.5 90.5t-90.5 37.5-90.5-37.5-37.5-90.5 37.5-90.5 90.5-37.5 90.5 37.5 37.5 90.5zm-640-704q0 80-56 136t-136 56-136-56-56-136 56-136 136-56 136 56 56 136zm530 206q0 93-66 158.5t-158 65.5q-93 0-158.5-65.5t-65.5-158.5q0-92 65.5-158t158.5-66q92 0 158 66t66 158z">
+                </path>
+            </svg>
+            {'Saving...'}
+            </>
+            
+
+          ) : ( 'Save Score')}
+          
+        </button>
+        </>
+
+        ) }
+        
+        <button onClick={restartGame} className="text-3xl px-20 py-12 bg-gray-400 text-white rounded">
           Play Again
         </button>
       </div>
