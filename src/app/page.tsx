@@ -43,6 +43,7 @@ interface PlaceOptions {
   stick?: boolean;
 }
 
+// Define the interface for the score data
 interface Score {
   name: string;
   score: number;
@@ -198,7 +199,7 @@ export default function TetrisGame() {
   const [score, setScore] = useState<number>(0); // Estado de la puntuación
   const [playerName, setPlayerName] = useState<string>(""); // Estado de la puntuación
   const [loading, setLoading] = useState<boolean>(false); // Estado de la puntuación
-  const [scores, setScores] = useState<[Score]>(); // Estado de la puntuación
+  const [scores, setScores] = useState<Score[]>([]); // Use Score[] instead of [Score] | undefined
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
@@ -221,19 +222,43 @@ export default function TetrisGame() {
     return () => document.removeEventListener("keydown", keyDownHandler); // Limpia el evento de teclado
   }, []);
 
-  useEffect(() => {
-    const fetchScores = async () => {
-      const { data } = await supabase
-        .from("score")
-        .select("name, score")
-        .order("score", { ascending: false })
-        .limit(10);
-      console.log(data);
+  const fetchScores = async (): Promise<Score[]> => {
+    const { data, error } = await supabase
+      .from<Score>("score")
+      .select("name, score")
+      .order("score", { ascending: false })
+      .limit(10);
 
-      setScores(data);
+    if (error) {
+      console.error("Error fetching data:", error);
+      return []; // Return an empty array on error
+    }
+
+    return data ?? []; // Return an empty array if data is null
+  };
+
+  useEffect(() => {
+    const fetchAndSetScores = async () => {
+      const fetchedScores = await fetchScores();
+      setScores(fetchedScores); // Now this matches the type of state
     };
 
-    fetchScores();
+    fetchAndSetScores();
+  }, []);
+
+  useEffect(() => {
+    // const fetchScores = async (): Promise<Score[]> => {
+    //   const { data, } = await supabase
+    //     .from("score")
+    //     .select("name, score")
+    //     .order("score", { ascending: false })
+    //     .limit(10);
+    //   console.log(data);
+
+    //   setScores(data);
+    // };
+
+    // fetchScores();
 
     const interval = setInterval(() => {
       tetris.move({ dy: 1 }); // Mueve la pieza hacia abajo cada 500ms
