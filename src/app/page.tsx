@@ -224,7 +224,7 @@ export default function TetrisGame() {
 
   const fetchScores = async (): Promise<Score[]> => {
     const { data, error } = await supabase
-      .from<Score>("score")
+      .from("score")
       .select("name, score")
       .order("score", { ascending: false })
       .limit(10);
