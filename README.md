@@ -1,6 +1,6 @@
 # Tetris Game
 
-A classic Tetris game implemented in React and TypeScript. This project showcases a basic implementation of the Tetris game mechanics, including piece movement, rotation, line clearing, and scoring. 
+A classic Tetris game implemented in React and TypeScript. This project showcases a basic implementation of the Tetris game mechanics, including piece movement, rotation, line clearing, and scoring.
 
 ## Features
 
@@ -9,6 +9,15 @@ A classic Tetris game implemented in React and TypeScript. This project showcase
 - **Line Clearing**: Automatically clears full lines and updates the score.
 - **Game Over**: Displays a "Game Over" screen with the final score and a button to restart the game.
 - **Responsive Design**: Styled using Tailwind CSS for a clean and modern look.
+
+## Top Scores
+
+The game integrates with Supabase to manage and display the top 10 scores. When the game ends and if the final score is high enough, the player can input their name to save the score. The top 10 scores are fetched from Supabase and displayed on the screen.
+
+### How It Works
+
+1. **Score Submission**: Upon game over, players can submit their scores along with their name. The score is saved to a Supabase database table called `score`.
+2. **Score Display**: The top 10 scores are fetched from the Supabase database and displayed on the screen.
 
 ## Installation
 
@@ -40,6 +49,7 @@ A classic Tetris game implemented in React and TypeScript. This project showcase
 ## Usage
 
 - **Arrow Keys**:
+
   - **Left Arrow**: Move the piece left.
   - **Right Arrow**: Move the piece right.
   - **Down Arrow**: Move the piece down faster.
@@ -67,4 +77,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
-For any questions or feedback, please reach out to [your-email@example.com](mailto:paulvallejos@gmail.com).
+For any questions or feedback, please reach out to [paulvallejos@gmail.com](mailto:paulvallejos@gmail.com).
