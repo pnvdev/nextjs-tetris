@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NextJS-Tetris",
+  title: "Next.js Tetris",
   description: "A game made for fun",
 };
 
