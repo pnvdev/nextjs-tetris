@@ -36,7 +36,18 @@ The game integrates with Supabase to manage and display the top 10 scores. When 
    pnpm install
    ```
 
-3. **Run the Development Server**
+3. **Configure Supabase**
+
+   Create a .env.local file in the root of the project and add your Supabase credentials:
+
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_KEY=your-supabase-key
+   ```
+
+   Open `http://localhost:3000` in your browser to play the game.
+
+4. **Run the Development Server**
 
    Start the development server to run the game:
 
